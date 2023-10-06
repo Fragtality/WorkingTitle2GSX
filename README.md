@@ -29,7 +29,7 @@
 - Start the Binary AFTER you hit "Ready to Fly"
 - The Aircraft will shortly "shake" because it is reset to Empty on Startup (only when on Ground!)
 - As soon as you switch on the Batteries the Binary will import Fuel & Payload from SimBrief
-- Call GSX Refuel to fuel the Aircraft to the planned SimBrief Figures
+- Call GSX Refuel to fuel the Aircraft to the planned SimBrief Figures. Start the APU only after Refuel was completed.
 - Call GSX Boarding to board Passengers and load Cargo/Bag as planned in SimBrief
 - When arrived, call GSX Deboarding to unload the Plane
 - After Deboarding, SimBrief will be checked every 60s for a new FlightPlan. If a new FlightPlan is found, you can call Refueling/Boarding
