@@ -244,6 +244,7 @@ namespace WorkingTitle2GSX
                         {
                             state = 4;
                             sleep = 10000;
+                            ResetGsxVars();
                             flightPlan.SetPassengersGSX();
 
                             Logger.Log(LogLevel.Information, "ServiceController:ServiceLoop", "Current State: Taxi In");
@@ -278,10 +279,8 @@ namespace WorkingTitle2GSX
                             {
                                 deboarding = false;
                                 aircraft.StopDeboarding();
-                                Logger.Log(LogLevel.Information, "ServiceController:ServiceLoop", "Current State: Turn-Around - Check for new OFP in 5 Minutes.");
+                                Logger.Log(LogLevel.Information, "ServiceController:ServiceLoop", "Current State: Turn-Around - Waiting for new OFP");
                                 state = 6;
-                                Thread.Sleep(240000);
-                                sleep = 60000;
                                 continue;
                             }
                         }
@@ -292,6 +291,13 @@ namespace WorkingTitle2GSX
                     {
                         if (flightPlan.Load())
                         {
+                            Logger.Log(LogLevel.Debug, "ServiceController:ServiceLoop", "Resetting GSX Vars");
+                            ResetGsxVars();
+                            Logger.Log(LogLevel.Debug, "ServiceController:ServiceLoop", "Import SimBrief to GSX");
+                            FSUIPCConnection.WriteLVar("FSDT_GSX_MENU_OPEN", 1);
+                            Thread.Sleep(2000);
+                            FSUIPCConnection.WriteLVar("FSDT_GSX_MENU_CHOICE", 14);
+                            Thread.Sleep(2000);
                             flightPlan.SetPassengersGSX();
                             aircraft.SetPayload(flightPlan);
                             state = 1;
@@ -300,7 +306,10 @@ namespace WorkingTitle2GSX
                             continue;
                         }
                         else
+                        {
+                            sleep = 60000;
                             Logger.Log(LogLevel.Information, "ServiceController:ServiceLoop", "No new OFP found - Retry in 60s.");
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -310,6 +319,14 @@ namespace WorkingTitle2GSX
             }
 
             Logger.Log(LogLevel.Information, "ServiceController:ServiceLoop", "ServiceLoop ended");
+        }
+
+        protected void ResetGsxVars()
+        {
+            FSUIPCConnection.WriteLVar("FSDT_GSX_NUMPASSENGERS_BOARDING_TOTAL", 0);
+            FSUIPCConnection.WriteLVar("FSDT_GSX_NUMPASSENGERS_DEBOARDING_TOTAL", 0);
+            FSUIPCConnection.WriteLVar("FSDT_GSX_BOARDING_CARGO_PERCENT", 0);
+            FSUIPCConnection.WriteLVar("FSDT_GSX_DEBOARDING_CARGO_PERCENT", 0);
         }
     }
 }

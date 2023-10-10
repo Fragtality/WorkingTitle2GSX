@@ -9,6 +9,7 @@ namespace WorkingTitle2GSX
     public class FlightPlan
     {
         public string Flight { get; set; } = "";
+        public string FlightPlanID { get; set; } = "";
         public string Origin { get; set; }
         public string Destination { get; set; }
         public string Units { get; set; }
@@ -72,8 +73,9 @@ namespace WorkingTitle2GSX
         public bool Load()
         {
             XmlNode sbOFP = LoadOFP();
-            string lastFlight = Flight;
+            string lastID = FlightPlanID;
             Flight = sbOFP["general"]["icao_airline"].InnerText + sbOFP["general"]["flight_number"].InnerText;
+            FlightPlanID = sbOFP["params"]["request_id"].InnerText;
             Origin = sbOFP["origin"]["icao_code"].InnerText;
             Destination = sbOFP["destination"]["icao_code"].InnerText;
             Units = sbOFP["params"]["units"].InnerText;
@@ -92,12 +94,12 @@ namespace WorkingTitle2GSX
             WeightPax = Convert.ToDouble(sbOFP["weights"]["pax_weight"].InnerText, new RealInvariantFormat(sbOFP["weights"]["pax_weight"].InnerText));
             WeightBag = Convert.ToDouble(sbOFP["weights"]["bag_weight"].InnerText, new RealInvariantFormat(sbOFP["weights"]["bag_weight"].InnerText));
 
-            if (lastFlight != Flight && Model.AcIndentified == sbOFP["aircraft"]["name"].InnerText)
+            if (lastID != FlightPlanID && Model.AcIndentified == sbOFP["aircraft"]["name"].InnerText)
             {
                 Logger.Log(LogLevel.Information, "FlightPlan:Load", $"New OFP for Flight {Flight} loaded. ({Origin} -> {Destination})");
             }
 
-            return lastFlight != Flight;
+            return lastID != FlightPlanID;
         }
 
         public void SetPassengersGSX()

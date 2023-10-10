@@ -33,7 +33,7 @@
 - Call GSX Refuel to fuel the Aircraft to the planned SimBrief Figures. Start the APU only after Refuel was completed.
 - Call GSX Boarding to board Passengers and load Cargo/Bag as planned in SimBrief
 - When arrived, call GSX Deboarding to unload the Plane
-- When Deboarding was finished, SimBrief will be checked for new FlightPlan after 5 Minutes (every 60 Seconds thereafter). If a new FlightPlan is found, you can call Refueling/Boarding again.
+- When Deboarding was finished, SimBrief will be checked for new FlightPlan. If none is found, it will re-check every 60 Seconds. If a new FlightPlan is found, you can call Refueling/Boarding again.
 
 <br/>
 
