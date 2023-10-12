@@ -3,6 +3,8 @@
 - GSX / SimBrief Integration for WorkingTitle 787 Aircrafts
 - Only a basic Payload & Fuel GSX Integration, not a single Automation
 
+Download under [Releases](https://github.com/Fragtality/WorkingTitle2GSX/releases)
+
 <br/><br/>
 
 ## Requirements
