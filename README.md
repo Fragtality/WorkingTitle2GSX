@@ -10,10 +10,10 @@ Download under [Releases](https://github.com/Fragtality/WorkingTitle2GSX/release
 ## Requirements
 
 - Any WT based 787 (Stock, Kuro/Horizon, 4Simmers)
-- FSUIPC7 latest installed (a registered Copy is not required, I think)
+- [FSUIPC7](http://fsuipc.com/) latest installed (a registered Copy is not required, I think)
 - GSX Pro
 - SimBrief Account
-- .NET 7 Runtime
+- [.NET 7 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/7.0) (.NET Runtime and .NET Desktop Runtime. Do not confuse it with arm64! Reboot may be required after first Installation)
 
 <br/>
 
