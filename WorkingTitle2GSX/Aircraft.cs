@@ -19,24 +19,12 @@ namespace WorkingTitle2GSX
         protected Offset<int> fuelRightOffset = new(ServiceModel.IpcGroupName, 0x0B94);
         protected Offset<int> fuelCenterOffset = new(ServiceModel.IpcGroupName, 0x0B74);
 
-        protected double bizPax;
-        protected double premPax;
-        protected double ecoPax;
-        protected double cargoFwd;
-        protected double cargoAft;
-        protected double payloadPax;
-        protected double payloadCargo;
-        protected Offset<double> paxBizOffset = new(ServiceModel.IpcGroupName, 0x1460);
-        protected Offset<double> paxPremOffset = new(ServiceModel.IpcGroupName, 0x1490);
-        protected Offset<double> paxEcoOffset = new(ServiceModel.IpcGroupName, 0x14C0);
-        protected Offset<double> cargoFwdOffset = new(ServiceModel.IpcGroupName, 0x14F0);
-        protected Offset<double> cargoAftOffset = new(ServiceModel.IpcGroupName, 0x1520);
-
         protected Offset<ushort> timeAccel = new(ServiceModel.IpcGroupName, 0x0C1A);
         protected int infoTicksFuel = 0;
         protected double lastPax = -1;
         protected double lastCargo = -1;
 
+        protected PayloadStations Stations = null;
 
         public Aircraft(ServiceModel model)
         {
@@ -46,24 +34,20 @@ namespace WorkingTitle2GSX
 
         protected void LoadAircraft()
         {
-            SetClassScalar(Model.DistributionPax, Model.DistributionCargo);
-
-            paxBizOffset.Disconnect();
-            paxPremOffset.Disconnect();
-            paxEcoOffset.Disconnect();
-            cargoFwdOffset.Disconnect();
-            cargoAftOffset.Disconnect();
+            Stations = new PayloadStations(OFP, Model);
             timeAccel.Disconnect();
-        }
 
-        protected void SetClassScalar(string distPax, string distCargo)
-        {
-            bizPax = Convert.ToInt32(distPax.Split(';')[0]) / 100.0;
-            premPax = Convert.ToInt32(distPax.Split(';')[1]) / 100.0;
-            ecoPax = Convert.ToInt32(distPax.Split(';')[2]) / 100.0;
-
-            cargoFwd = Convert.ToInt32(distCargo.Split(';')[0]) / 100.0;
-            cargoAft = Convert.ToInt32(distCargo.Split(';')[1]) / 100.0;
+            Logger.Log(LogLevel.Debug, "IPCManager:CheckAircraft", $"Getting Fuel Information for {Model.AcIndentified}");
+            Offset tankCapacityCenter = new(ServiceModel.IpcGroupName, 0x0B78, 4);
+            Offset tankCapacityWing = new(ServiceModel.IpcGroupName, 0x0B80, 4);
+            Offset offWeightConversion = new(ServiceModel.IpcGroupName, 0x0AF4, 2);
+            FSUIPCConnection.Process(ServiceModel.IpcGroupName);
+            Model.ConstFuelWeight = offWeightConversion.GetValue<short>() * 0.00390625;
+            Model.ConstMaxCenter = tankCapacityCenter.GetValue<int>();
+            Model.ConstMaxWing = tankCapacityWing.GetValue<int>();
+            tankCapacityCenter.Disconnect();
+            tankCapacityWing.Disconnect();
+            tankCapacityWing.Disconnect();
         }
 
         public void SetPayload(FlightPlan fPlan)
@@ -72,6 +56,7 @@ namespace WorkingTitle2GSX
                 OFP = fPlan;
             Logger.Log(LogLevel.Debug, "Aircraft:SetPayload", $"Setting Payload ...");
 
+            Stations.SetWeights(OFP);
             if (OFP.Units != "kgs")
                 unitScalar = 1.0;
             else
@@ -98,12 +83,10 @@ namespace WorkingTitle2GSX
             
 
             //PAX + CARGO
-            Logger.Log(LogLevel.Information, "Aircraft:SetPayload", $"Total Passengers: {OFP.Passenger} (Business: {(OFP.Passenger * bizPax):F0} | Premium-Eco: {(OFP.Passenger * premPax):F0} | Economy: {(OFP.Passenger * ecoPax):F0})");
-            payloadPax = OFP.Passenger * OFP.WeightPax;
-            Logger.Log(LogLevel.Information, "Aircraft:SetPayload", $"Weight Pax: {payloadPax:F1} {OFP.Units}");
-            payloadCargo = OFP.CargoTotal;
-            Logger.Log(LogLevel.Information, "Aircraft:SetPayload", $"Bags + Cargo: {payloadCargo:F1} {OFP.Units}");
-            Logger.Log(LogLevel.Information, "Aircraft:SetPayload", $"Total Payload: {(payloadPax + payloadCargo):F1} {OFP.Units}");
+            double payloadPax = OFP.Passenger * OFP.WeightPax;
+            Logger.Log(LogLevel.Information, "Aircraft:SetPayload", $"Total Passengers: {OFP.Passenger} | Weight Pax: {payloadPax:F1} {OFP.Units}");
+            Logger.Log(LogLevel.Information, "Aircraft:SetPayload", $"Bags + Cargo: {OFP.CargoTotal:F1} {OFP.Units}");
+            Logger.Log(LogLevel.Information, "Aircraft:SetPayload", $"Total Payload: {(payloadPax + OFP.CargoTotal):F1} {OFP.Units}");
         }
 
         public void StartRefuel()
@@ -156,7 +139,7 @@ namespace WorkingTitle2GSX
 
             FSUIPCConnection.Process(ServiceModel.IpcGroupName);
             infoTicksFuel = 30;
-            Logger.Log(LogLevel.Information, "Aircraft:StartRefuel", $"Refuel Process started ...");
+            Logger.Log(LogLevel.Information, "Aircraft:StartRefuel", $"Refuel Service active ...");
         }
 
         public bool RefuelAircraft()
@@ -175,7 +158,7 @@ namespace WorkingTitle2GSX
                 fuelLeftOffset.Value = (int)(fuelWingTarget * Model.ConstPercent);
                 fuelRightOffset.Value = (int)(fuelWingTarget * Model.ConstPercent);
                 fuelActiveTanks -= 2;
-                Logger.Log(LogLevel.Information, "Aircraft:RefuelAircraft", $"Wings finished: {((fuelRightOffset.Value / Model.ConstPercent) * 100.0):F2}%");
+                Logger.Log(LogLevel.Information, "Aircraft:RefuelAircraft", $"Wings finished: {GetFuelWeight(fuelWingCurrent, Model.ConstMaxWing, 2)}");
             }
 
             double tankCenterStep = ((Model.GallonsPerSecond / fuelActiveTanks) * accel) / Model.ConstMaxCenter;
@@ -191,7 +174,7 @@ namespace WorkingTitle2GSX
                     fuelCenterCurrent = fuelCenterTarget;
                     fuelCenterOffset.Value = (int)(fuelCenterTarget * Model.ConstPercent);
                     fuelActiveTanks--;
-                    Logger.Log(LogLevel.Information, "Aircraft:RefuelAircraft", $"Center finished: {((fuelCenterOffset.Value / Model.ConstPercent) * 100.0):F2}%");
+                    Logger.Log(LogLevel.Information, "Aircraft:RefuelAircraft", $"Center finished: {GetFuelWeight(fuelCenterCurrent, Model.ConstMaxCenter)}");
                 }
             }
 
@@ -199,16 +182,22 @@ namespace WorkingTitle2GSX
             if (infoTicksFuel >= 30 && fuelActiveTanks > 0)
             {
                 if (fuelActiveTanks == 3)
-                    Logger.Log(LogLevel.Information, "Aircraft:RefuelAircraft", $"Wings refueling: {(fuelWingCurrent * 100):F2}% {GetActualFlow(tankWingStep * 2.0, Model.ConstMaxWing)} | Center refueling: {GetActualFlow(tankCenterStep, Model.ConstMaxCenter)}");
+                    Logger.Log(LogLevel.Information, "Aircraft:RefuelAircraft", $"Wings refueling: {GetFuelWeight(fuelWingCurrent, Model.ConstMaxWing, 2)} {GetActualFlow(tankWingStep * 2.0, Model.ConstMaxWing)} | Center refueling: {GetFuelWeight(fuelCenterCurrent, Model.ConstMaxCenter)} {GetActualFlow(tankCenterStep, Model.ConstMaxCenter)}");
                 else if (fuelActiveTanks == 2)
-                    Logger.Log(LogLevel.Information, "Aircraft:RefuelAircraft", $"Wings refueling: {(fuelWingCurrent * 100):F2}% {GetActualFlow(tankWingStep * 2.0, Model.ConstMaxWing)}");
+                    Logger.Log(LogLevel.Information, "Aircraft:RefuelAircraft", $"Wings refueling: {GetFuelWeight(fuelWingCurrent, Model.ConstMaxWing, 2)} {GetActualFlow(tankWingStep * 2.0, Model.ConstMaxWing)}");
                 else
-                    Logger.Log(LogLevel.Information, "Aircraft:RefuelAircraft", $"Center refueling: {(fuelCenterCurrent * 100):F2}% {GetActualFlow(tankCenterStep, Model.ConstMaxCenter)}");
+                    Logger.Log(LogLevel.Information, "Aircraft:RefuelAircraft", $"Center refueling: {GetFuelWeight(fuelCenterCurrent, Model.ConstMaxCenter)} {GetActualFlow(tankCenterStep, Model.ConstMaxCenter)}");
                 infoTicksFuel = 0;
             }
             infoTicksFuel += 1 * (int)accel;
 
             return fuelActiveTanks == 0;
+        }
+
+        protected string GetFuelWeight(double percent, double capacity, int tanks = 1)
+        {
+            double level = percent * capacity * Model.ConstFuelWeight * unitScalar * tanks;
+            return $"{level:F0} {OFP.Units}";
         }
 
         protected string GetActualFlow(double stepSize, double tankSize)
@@ -232,20 +221,12 @@ namespace WorkingTitle2GSX
 
         public void StartBoarding()
         {
-            paxBizOffset.Reconnect();
-            paxPremOffset.Reconnect();
-            paxEcoOffset.Reconnect();
-            cargoFwdOffset.Reconnect();
-            cargoAftOffset.Reconnect();
+            Stations.Refresh();
             if (!timeAccel.IsConnected)
                 timeAccel.Reconnect();
 
-            paxBizOffset.Value = 0;
-            paxPremOffset.Value = 0;
-            paxEcoOffset.Value = 0;
-            cargoFwdOffset.Value = 0;
-            cargoAftOffset.Value = 0;
-            FSUIPCConnection.Process(ServiceModel.IpcGroupName);
+            Stations.SetPax(0);
+            Stations.SetCargo(0);
 
             lastPax = -1;
             lastCargo = -1;
@@ -260,9 +241,7 @@ namespace WorkingTitle2GSX
             bool changePax = false;
             if (brdPax != lastPax)
             {
-                paxBizOffset.Value = brdPax * bizPax * (OFP.WeightPax / unitScalar);
-                paxPremOffset.Value = brdPax * premPax * (OFP.WeightPax / unitScalar);
-                paxEcoOffset.Value = brdPax * ecoPax * (OFP.WeightPax / unitScalar);
+                Stations.SetPax(brdPax);
                 lastPax = brdPax;
                 changePax = true;
             }
@@ -270,19 +249,17 @@ namespace WorkingTitle2GSX
             bool changeCargo = false;
             if (brdCargo != lastCargo)
             {
-                cargoFwdOffset.Value = (brdCargo * cargoFwd) * (payloadCargo / unitScalar);
-                cargoAftOffset.Value = (brdCargo * cargoAft) * (payloadCargo / unitScalar);
+                Stations.SetCargo(brdCargo);
                 lastCargo = brdCargo;
                 changeCargo = true;
             }
 
             if (changePax || changeCargo)
             { 
-                FSUIPCConnection.Process(ServiceModel.IpcGroupName);
                 if (changePax)
-                    Logger.Log(LogLevel.Information, "Aircraft:BoardAircraft", $"Boarding Passenger ... {brdPax}/{OFP.Passenger} (Business: {(brdPax * bizPax):F0} | Premium-Eco: {(brdPax * premPax):F0} | Economy: {(brdPax * ecoPax):F0})");
+                    Logger.Log(LogLevel.Information, "Aircraft:BoardAircraft", $"Boarding Passenger ... {brdPax}/{OFP.Passenger}");
                 if (changeCargo)
-                    Logger.Log(LogLevel.Information, "Aircraft:BoardAircraft", $"Loading Cargo/Pax ... {(brdCargo * payloadCargo):F0}/{payloadCargo:F0} {OFP.Units} (Fwd: {(brdCargo * payloadCargo * cargoFwd):F0} | Aft: {(brdCargo * payloadCargo * cargoAft):F0})");
+                    Logger.Log(LogLevel.Information, "Aircraft:BoardAircraft", $"Loading Cargo/Bags ... {(brdCargo * OFP.CargoTotal):F0}/{OFP.CargoTotal:F0} {OFP.Units}");
             }
 
             return brdPax == OFP.Passenger && brdCargo == 1.0;
@@ -290,14 +267,9 @@ namespace WorkingTitle2GSX
 
         public void StopBoarding()
         {
-            double pax = (paxBizOffset.Value + paxPremOffset.Value + paxEcoOffset.Value) * unitScalar;
-            double cargo = (cargoFwdOffset.Value + cargoAftOffset.Value) * unitScalar;
+            double pax = Stations.GetPax();
+            double cargo = Stations.GetCargo();
 
-            paxBizOffset.Disconnect();
-            paxPremOffset.Disconnect();
-            paxEcoOffset.Disconnect();
-            cargoFwdOffset.Disconnect();
-            cargoAftOffset.Disconnect();
             timeAccel.Disconnect();
 
             Logger.Log(LogLevel.Information, "Aircraft:StopBoarding", $"Boarding finished! SOB: {(pax / OFP.WeightPax):F0} (Payload Total: {(pax + cargo):F2} {OFP.Units})");
@@ -305,12 +277,7 @@ namespace WorkingTitle2GSX
 
         public void StartDeboarding()
         {
-            paxBizOffset.Reconnect();
-            paxPremOffset.Reconnect();
-            paxEcoOffset.Reconnect();
-            cargoFwdOffset.Reconnect();
-            cargoAftOffset.Reconnect();
-            FSUIPCConnection.Process(ServiceModel.IpcGroupName);
+            Stations.Refresh();
 
             lastPax = -1;
             lastCargo = -1;
@@ -325,9 +292,7 @@ namespace WorkingTitle2GSX
             bool changePax = false;
             if (debrdPax != lastPax)
             {
-                paxBizOffset.Value = debrdPax * bizPax * (OFP.WeightPax / unitScalar);
-                paxPremOffset.Value = debrdPax * premPax * (OFP.WeightPax / unitScalar);
-                paxEcoOffset.Value = debrdPax * ecoPax * (OFP.WeightPax / unitScalar);
+                Stations.SetPax(debrdPax);
                 lastPax = debrdPax;
                 changePax = true;
             }
@@ -335,19 +300,17 @@ namespace WorkingTitle2GSX
             bool changeCargo = false;
             if (debrdCargo != lastCargo)
             {
-                cargoFwdOffset.Value = (debrdCargo * cargoFwd) * (payloadCargo / unitScalar);
-                cargoAftOffset.Value = (debrdCargo * cargoAft) * (payloadCargo / unitScalar);
+                Stations.SetCargo(debrdCargo);
                 lastCargo = debrdCargo;
                 changeCargo = true;
             }
 
             if (changePax || changeCargo)
             {
-                FSUIPCConnection.Process(ServiceModel.IpcGroupName);
                 if (changePax)
                     Logger.Log(LogLevel.Information, "Aircraft:StartDeboarding", $"Deboarding Passenger ... {debrdPax}/{OFP.Passenger}");
                 if (changeCargo)
-                    Logger.Log(LogLevel.Information, "Aircraft:StartDeboarding", $"Unloading Cargo/Pax ... {(debrdCargo * payloadCargo):F0}/{payloadCargo:F0} {OFP.Units} (Fwd: {(debrdCargo * payloadCargo * cargoFwd):F0} | Aft: {(debrdCargo * payloadCargo * cargoAft):F0})");
+                    Logger.Log(LogLevel.Information, "Aircraft:StartDeboarding", $"Unloading Cargo/Pax ... {(debrdCargo * OFP.CargoTotal):F0}/{OFP.CargoTotal:F0} {OFP.Units}");
             }
 
             return debrdPax == 0 && debrdCargo == 0.0;
@@ -355,18 +318,8 @@ namespace WorkingTitle2GSX
 
         public void StopDeboarding()
         {
-            paxBizOffset.Value = 0;
-            paxPremOffset.Value = 0;
-            paxEcoOffset.Value = 0;
-            cargoFwdOffset.Value = 0;
-            cargoAftOffset.Value = 0;
-            FSUIPCConnection.Process(ServiceModel.IpcGroupName);
-
-            paxBizOffset.Disconnect();
-            paxPremOffset.Disconnect();
-            paxEcoOffset.Disconnect();
-            cargoFwdOffset.Disconnect();
-            cargoAftOffset.Disconnect();
+            Stations.SetPax(0);
+            Stations.SetCargo(0);
 
             Logger.Log(LogLevel.Information, "Aircraft:StopDeboarding", $"Deboarding finished!");
         }
@@ -374,32 +327,20 @@ namespace WorkingTitle2GSX
         public void SetEmpty()
         {
             Logger.Log(LogLevel.Information, "Aircraft:SetEmpty", $"Resetting Paylod & Fuel (Empty Plane)");
-            paxBizOffset.Reconnect();
-            paxPremOffset.Reconnect();
-            paxEcoOffset.Reconnect();
-            cargoFwdOffset.Reconnect();
-            cargoAftOffset.Reconnect();
+            Stations.Refresh();
             fuelLeftOffset.Reconnect();
             fuelRightOffset.Reconnect();
             fuelCenterOffset.Reconnect();
             FSUIPCConnection.Process(ServiceModel.IpcGroupName);
 
-            paxBizOffset.Value = 0.0;
-            paxPremOffset.Value = 0.0;
-            paxEcoOffset.Value = 0.0;
-            cargoFwdOffset.Value = 0.0;
-            cargoAftOffset.Value = 0.0;
+            Stations.SetPax(0);
+            Stations.SetCargo(0);
 
             fuelLeftOffset.Value = (int)((Model.WingTankStartValue * Model.ConstPercent) / 100);
             fuelRightOffset.Value = (int)((Model.WingTankStartValue * Model.ConstPercent) / 100);
             fuelCenterOffset.Value = 0;
 
             FSUIPCConnection.Process(ServiceModel.IpcGroupName);
-            paxBizOffset.Disconnect();
-            paxPremOffset.Disconnect();
-            paxEcoOffset.Disconnect();
-            cargoFwdOffset.Disconnect();
-            cargoAftOffset.Disconnect();
             fuelLeftOffset.Disconnect();
             fuelRightOffset.Disconnect();
             fuelCenterOffset.Disconnect();

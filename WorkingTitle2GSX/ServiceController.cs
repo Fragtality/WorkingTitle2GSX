@@ -318,6 +318,9 @@ namespace WorkingTitle2GSX
                 }
             }
 
+            Model.IsSimRunning = false;
+            Model.IsWT787Selected = false;
+            Model.IsSessionRunning = false;            
             Logger.Log(LogLevel.Information, "ServiceController:ServiceLoop", "ServiceLoop ended");
         }
 

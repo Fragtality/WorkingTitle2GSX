@@ -19,13 +19,25 @@ namespace WorkingTitle2GSX
         private TaskbarIcon notifyIcon;
 
         public static new App Current => Application.Current as App;
+        public static string ConfigFile = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\WorkingTitle2GSX\WorkingTitle2GSX.config";
+        public static string AppDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\WorkingTitle2GSX\bin";
 
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
-            var args = Environment.GetCommandLineArgs();
-            if (args.Length == 3 && args[1].ToLower() == "-path" && Directory.Exists(args[2]))
-                Directory.SetCurrentDirectory(args[2]);
+
+            Directory.SetCurrentDirectory(AppDir);
+
+            if (!File.Exists(ConfigFile))
+            {
+                ConfigFile = Directory.GetCurrentDirectory() + @"\WorkingTitle2GSX.config";
+                if (!File.Exists(ConfigFile))
+                {
+                    MessageBox.Show("No Configuration File found! Closing ...", "Critical Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    Application.Current.Shutdown();
+                    return;
+                }
+            }
 
             Model = new();
             InitLog();
@@ -65,7 +77,7 @@ namespace WorkingTitle2GSX
 
         protected void InitLog()
         {
-            string logFilePath = Model.GetSetting("logFilePath", "WorkingTitle2GSX.log");
+            string logFilePath = @"..\log\" + Model.GetSetting("logFilePath", "WorkingTitle2GSX.log");
             string logLevel = Model.GetSetting("logLevel", "Debug");
             LoggerConfiguration loggerConfiguration = new LoggerConfiguration().WriteTo.File(logFilePath, rollingInterval: RollingInterval.Day, retainedFileCountLimit: 3,
                                                     outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message} {NewLine}{Exception}");

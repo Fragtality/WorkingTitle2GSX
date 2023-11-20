@@ -43,19 +43,19 @@ namespace WorkingTitle2GSX
             chkResetFuel.IsChecked = serviceModel.ResetFuel;
             txtStartFuelWingPercent.Text = Convert.ToString(serviceModel.WingTankStartValue, CultureInfo.CurrentUICulture);
 
-            string[] parts = serviceModel.DistributionPax.Split(';');
-            double bizPax = Convert.ToDouble(parts[0], new RealInvariantFormat(parts[0]));
-            double premPax = Convert.ToDouble(parts[1], new RealInvariantFormat(parts[1]));
-            double ecoPax = Convert.ToDouble(parts[2], new RealInvariantFormat(parts[2]));
-            txtPaxBusiness.Text = Convert.ToString(bizPax, CultureInfo.CurrentUICulture);
-            txtPaxPremium.Text = Convert.ToString(premPax, CultureInfo.CurrentUICulture);
-            txtPaxEconomy.Text = Convert.ToString(ecoPax, CultureInfo.CurrentUICulture);
+            //string[] parts = serviceModel.DistributionPax.Split(';');
+            //double bizPax = Convert.ToDouble(parts[0], new RealInvariantFormat(parts[0]));
+            //double premPax = Convert.ToDouble(parts[1], new RealInvariantFormat(parts[1]));
+            //double ecoPax = Convert.ToDouble(parts[2], new RealInvariantFormat(parts[2]));
+            //txtPaxBusiness.Text = Convert.ToString(bizPax, CultureInfo.CurrentUICulture);
+            //txtPaxPremium.Text = Convert.ToString(premPax, CultureInfo.CurrentUICulture);
+            //txtPaxEconomy.Text = Convert.ToString(ecoPax, CultureInfo.CurrentUICulture);
 
-            parts = serviceModel.DistributionCargo.Split(';');
-            double cargoFwd = Convert.ToDouble(parts[0], new RealInvariantFormat(parts[0]));
-            double cargoAft = Convert.ToDouble(parts[1], new RealInvariantFormat(parts[1]));
-            txtCargoForward.Text = Convert.ToString(cargoFwd, CultureInfo.CurrentUICulture);
-            txtCargoAft.Text = Convert.ToString(cargoAft, CultureInfo.CurrentUICulture);
+            //parts = serviceModel.DistributionCargo.Split(';');
+            //double cargoFwd = Convert.ToDouble(parts[0], new RealInvariantFormat(parts[0]));
+            //double cargoAft = Convert.ToDouble(parts[1], new RealInvariantFormat(parts[1]));
+            //txtCargoForward.Text = Convert.ToString(cargoFwd, CultureInfo.CurrentUICulture);
+            //txtCargoAft.Text = Convert.ToString(cargoAft, CultureInfo.CurrentUICulture);
         }
 
         protected void UpdateLogArea()
@@ -181,55 +181,6 @@ namespace WorkingTitle2GSX
         private void chkResetFuel_Click(object sender, RoutedEventArgs e)
         {
             serviceModel.SetSetting("resetFuel", chkResetFuel.IsChecked.ToString().ToLower());
-        }
-
-        private void SetPaxDistribution()
-        {
-            if (double.TryParse(txtPaxBusiness.Text, new RealInvariantFormat(txtPaxBusiness.Text), out double paxBiz)
-                && double.TryParse(txtPaxPremium.Text, new RealInvariantFormat(txtPaxPremium.Text), out double paxPrem)
-                && double.TryParse(txtPaxEconomy.Text, new RealInvariantFormat(txtPaxEconomy.Text), out double paxEco))
-            {
-                serviceModel.SetSetting("distPaxPercent", $"{Convert.ToString(paxBiz, CultureInfo.InvariantCulture)};{Convert.ToString(paxPrem, CultureInfo.InvariantCulture)};{Convert.ToString(paxEco, CultureInfo.InvariantCulture)}");
-            }
-
-            LoadSettings();
-        }
-
-        private void txtPaxDistribution_LostFocus(object sender, RoutedEventArgs e)
-        {
-            SetPaxDistribution();
-        }
-
-        private void txtPaxDistribution_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
-        {
-            if (e.Key != System.Windows.Input.Key.Enter || e.Key != System.Windows.Input.Key.Return)
-                return;
-
-            SetPaxDistribution();
-        }
-
-        private void SetCargoDistribution()
-        {
-            if (double.TryParse(txtCargoForward.Text, new RealInvariantFormat(txtCargoForward.Text), out double cargoFwd)
-                && double.TryParse(txtCargoAft.Text, new RealInvariantFormat(txtCargoAft.Text), out double cargoAft))
-            {
-                serviceModel.SetSetting("distCargoPercent", $"{Convert.ToString(cargoFwd, CultureInfo.InvariantCulture)};{Convert.ToString(cargoAft, CultureInfo.InvariantCulture)}");
-            }
-
-            LoadSettings();
-        }
-
-        private void txtCargoDistribution_LostFocus(object sender, RoutedEventArgs e)
-        {
-            SetCargoDistribution();
-        }
-
-        private void txtCargoDistribution_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
-        {
-            if (e.Key != System.Windows.Input.Key.Enter || e.Key != System.Windows.Input.Key.Return)
-                return;
-
-            SetCargoDistribution();
         }
 
         private void txtStartFuelWingPercent_Set()

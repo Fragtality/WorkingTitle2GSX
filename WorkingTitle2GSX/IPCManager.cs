@@ -10,9 +10,7 @@ namespace WorkingTitle2GSX
     {
         public static readonly int waitDuration = 30000;
 
-        private readonly Offset<byte> offInMenu = new(ServiceModel.IpcGroupName, 0x3365);
-        private readonly Offset<short> offIsPaused = new(ServiceModel.IpcGroupName, 0x0262);
-        private readonly Offset<short> offPauseInd = new(ServiceModel.IpcGroupName, 0x0264);
+        private readonly Offset<byte> offInMenu = new(ServiceModel.IpcGroupName, 0x062B);
         private readonly Offset<byte> offCamReady = new(ServiceModel.IpcGroupName, 0x026D);
         private readonly Offset<string> offAircraft = new(ServiceModel.IpcGroupName, 0x3C00, 256);
 
@@ -67,8 +65,6 @@ namespace WorkingTitle2GSX
                 if (FSUIPCConnection.IsOpen)
                 {
                     offInMenu.Reconnect();
-                    offIsPaused.Reconnect();
-                    offPauseInd.Reconnect();
                     offCamReady.Reconnect();
                     offAircraft.Reconnect();
                     FSUIPCConnection.Process(ServiceModel.IpcGroupName);
@@ -107,31 +103,7 @@ namespace WorkingTitle2GSX
                     }
                     else
                     {
-                        if (airString.Contains("787_8"))
-                            model.AcIndentified = "B787-8";
-                        else if (airString.Contains("787_9"))
-                            model.AcIndentified = "B787-9";
-                        else if (airString.Contains("787_10"))
-                            model.AcIndentified = "B787-10";
-                        else
-                        {
-                            Logger.Log(LogLevel.Debug, "IPCManager:CheckAircraft", $"AirString could not be matched: {airString}");
-                            model.AcIndentified = "";
-                            return "";
-                        }
-
-                        Logger.Log(LogLevel.Debug, "IPCManager:CheckAircraft", $"Getting Fuel Information for {model.AcIndentified}");
-                        Offset tankCapacityCenter = new(ServiceModel.IpcGroupName, 0x0B78, 4);
-                        Offset tankCapacityWing = new(ServiceModel.IpcGroupName, 0x0B80, 4);
-                        Offset offWeightConversion = new(ServiceModel.IpcGroupName, 0x0AF4, 2);
-                        FSUIPCConnection.Process(ServiceModel.IpcGroupName);
-                        model.ConstFuelWeight = offWeightConversion.GetValue<short>() * 0.00390625;
-                        model.ConstMaxCenter = tankCapacityCenter.GetValue<int>();
-                        model.ConstMaxWing = tankCapacityWing.GetValue<int>();
-                        tankCapacityCenter.Disconnect();
-                        tankCapacityWing.Disconnect();
-                        tankCapacityWing.Disconnect();
-                        Logger.Log(LogLevel.Debug, "IPCManager:CheckAircraft", $"Fuel Information: Aircraft {model.AcIndentified} | FuelWeight {model.ConstFuelWeight} | CenterCapacity {model.ConstMaxCenter} | WingCapacity {model.ConstMaxWing}");
+                        model.AcIndentified = airString;
                     }
                 }
                 else
@@ -207,8 +179,9 @@ namespace WorkingTitle2GSX
         {
             FSUIPCConnection.Process(ServiceModel.IpcGroupName);
             short value = offCamReady.Value;
+            byte menu = offInMenu.Value;
 
-            return value >= 2 && value <= 5;
+            return value >= 2 && value <= 5 && menu == 0;
         }
 
         public void CloseSafe()
@@ -218,8 +191,6 @@ namespace WorkingTitle2GSX
                 if (FSUIPCConnection.IsOpen)
                 {
                     offInMenu.Disconnect();
-                    offIsPaused.Disconnect();
-                    offPauseInd.Disconnect();
                     offCamReady.Disconnect();
                     offAircraft.Disconnect();
                     FSUIPCConnection.Close();

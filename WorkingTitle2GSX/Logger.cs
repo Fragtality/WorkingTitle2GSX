@@ -45,8 +45,8 @@ namespace WorkingTitle2GSX
             }
             if (level > LogLevel.Debug)
             {
-                if (message.Length > 80)
-                    MessageQueue.Enqueue(message[1..80]);
+                if (message.Length > 128)
+                    MessageQueue.Enqueue(message[0..128]);
                 else
                     MessageQueue.Enqueue(message);
             }

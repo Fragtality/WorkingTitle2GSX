@@ -14,7 +14,7 @@
     <PackageIcon>logo.png</PackageIcon>
     <RepositoryUrl>https://github.com/Fragtality/WorkingTitle2GSX</RepositoryUrl>
     <PackageProjectUrl>https://github.com/Fragtality/WorkingTitle2GSX</PackageProjectUrl>
-    <Version>0.2.2</Version>
+    <Version>0.3.0</Version>
     <StartupObject>WorkingTitle2GSX.App</StartupObject>
   </PropertyGroup>
 
@@ -27,14 +27,21 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="logo.ico" />
+    <None Remove="WorkingTitle2GSX.config" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
-    <PackageReference Include="FSUIPCClientDLL" Version="3.3.7" />
+    <EmbeddedResource Include="logo.ico" />
+    <EmbeddedResource Include="WorkingTitle2GSX.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+    <PackageReference Include="FSUIPCClientDLL" Version="3.3.8" />
     <PackageReference Include="H.NotifyIcon.Wpf" Version="2.0.118" />
-    <PackageReference Include="Serilog" Version="3.0.1" />
+    <PackageReference Include="Serilog" Version="3.1.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
   </ItemGroup>
 
