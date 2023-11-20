@@ -23,6 +23,7 @@ Download under [Releases](https://github.com/Fragtality/WorkingTitle2GSX/release
 - AV Exclusions may be required
 - Run as Admin is NOT required
 - Set your SimBrief PilotID in the GUI
+- Ensure that the Option 'Show MSFS Fuel and Cargo during refueling' is unchecked in the GSX Airplane Profile
 
 <br/>
 
