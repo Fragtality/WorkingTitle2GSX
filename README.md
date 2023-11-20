@@ -13,13 +13,13 @@ Download under [Releases](https://github.com/Fragtality/WorkingTitle2GSX/release
 - [FSUIPC7](http://fsuipc.com/) latest installed (a registered Copy is not required, I think)
 - GSX Pro
 - SimBrief Account
-- [.NET 7 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/7.0) (.NET Runtime and .NET Desktop Runtime. Do not confuse it with arm64! Reboot may be required after first Installation)
+- .NET 7 Runtime (will be installed through the Installer)
 
 <br/>
 
 ## Installation
 
-- Extract to a reasonable Folder
+- Run the Installer. Check Auto-Start as desired.
 - AV Exclusions may be required
 - Run as Admin is NOT required
 - Set your SimBrief PilotID in the GUI
@@ -30,7 +30,7 @@ Download under [Releases](https://github.com/Fragtality/WorkingTitle2GSX/release
 ## Usage
 
 - The Aircraft Type in SimBrief and the Simulator must match
-- Start the Binary before MSFS or in the Main Menu
+- Start the Binary before MSFS or in the Main Menu (when you did not select an Auto-Start Option in the Installer)
 - The Aircraft will shortly "shake" because it is reset to Empty on Startup (only when on Ground!)
 - As soon as you switch on the Batteries the Binary will import Fuel & Payload from SimBrief
 - Call GSX Refuel to fuel the Aircraft to the planned SimBrief Figures. Start the APU only after Refuel was completed.
