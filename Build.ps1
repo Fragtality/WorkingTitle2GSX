@@ -1,6 +1,6 @@
 $projdir = "C:\Users\Fragtality\source\repos\WorkingTitle2GSX"
 $instBinDir = $projdir + "\Installer\bin\Release\app.publish"
-$version = "v0.3.0"
+$version = "v0.4.0"
 
 #Create Lock
 cd $projdir

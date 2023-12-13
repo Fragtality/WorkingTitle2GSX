@@ -34,7 +34,7 @@ namespace WorkingTitle2GSX
 
         protected void LoadAircraft()
         {
-            Stations = new PayloadStations(OFP, Model);
+            Stations = new PayloadStations(Model);
             timeAccel.Disconnect();
 
             Logger.Log(LogLevel.Debug, "IPCManager:CheckAircraft", $"Getting Fuel Information for {Model.AcIndentified}");
@@ -72,7 +72,7 @@ namespace WorkingTitle2GSX
                 fuelWingTarget = OFP.Fuel / 2.0;
                 fuelCenterTarget = 0.0;
             }
-            Logger.Log(LogLevel.Information, "Aircraft:SetPayload", $"Wing Tanks Target: {fuelWingTarget:F0} {OFP.Units} | Center Target: {fuelCenterTarget:F0} {OFP.Units} | Total: {((fuelWingTarget * 2) + fuelCenterTarget):F0} {OFP.Units}");
+            Logger.Log(LogLevel.Information, "Aircraft:SetPayload", $"Wing Tanks Target: 2 * {fuelWingTarget:F0} {OFP.Units} | Center Target: {fuelCenterTarget:F0} {OFP.Units} | Total: {((fuelWingTarget * 2) + fuelCenterTarget):F0} {OFP.Units}");
 
             fuelWingTarget /= ((Model.ConstMaxWing * Model.ConstFuelWeight) * unitScalar);
             if (fuelWingTarget > 1.0)
@@ -80,7 +80,7 @@ namespace WorkingTitle2GSX
             fuelCenterTarget /= ((Model.ConstMaxCenter * Model.ConstFuelWeight) * unitScalar);
             if (fuelCenterTarget > 1.0)
                 fuelCenterTarget = 1.0;
-            
+                
 
             //PAX + CARGO
             double payloadPax = OFP.Passenger * OFP.WeightPax;
@@ -227,6 +227,7 @@ namespace WorkingTitle2GSX
 
             Stations.SetPax(0);
             Stations.SetCargo(0);
+            Stations.SetPilots();
 
             lastPax = -1;
             lastCargo = -1;
@@ -267,12 +268,12 @@ namespace WorkingTitle2GSX
 
         public void StopBoarding()
         {
-            double pax = Stations.GetPax();
+            int pax = Stations.GetPax();
             double cargo = Stations.GetCargo();
 
             timeAccel.Disconnect();
 
-            Logger.Log(LogLevel.Information, "Aircraft:StopBoarding", $"Boarding finished! SOB: {(pax / OFP.WeightPax):F0} (Payload Total: {(pax + cargo):F2} {OFP.Units})");
+            Logger.Log(LogLevel.Information, "Aircraft:StopBoarding", $"Boarding finished! SOB: {pax} (Payload Total: {((double)pax * OFP.WeightPax) + cargo:F2} {OFP.Units})");
         }
 
         public void StartDeboarding()

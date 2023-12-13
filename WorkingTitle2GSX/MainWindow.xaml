@@ -67,7 +67,7 @@
                         <Label Margin="0,2,0,0">Gallons per Second</Label>
                     </StackPanel>
 
-                    <StackPanel Orientation="Horizontal" ToolTip="Reset the Wing and Center Tanks on Session Start - the Center Tank will always be zero.">
+                    <StackPanel Orientation="Horizontal" ToolTip="Reset the Wing and Center Tanks on Session Start - the Center Tank will always be zero.&#x0a;ATTENTION: This Feature also resets the Passenger/Cargo Stations to zero so the Plane is really empty on Statup.">
                         <CheckBox Margin="8,2,8,2" Name="chkResetFuel" Height="24" MaxHeight="24" MinHeight="24" VerticalContentAlignment="Center" Click="chkResetFuel_Click">
                             <TextBlock>Reset Wing Tank Fuel on Startup to: </TextBlock>
                         </CheckBox>

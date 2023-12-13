@@ -13,7 +13,7 @@ namespace WorkingTitle2GSX
         protected List<KeyValuePair<int, double>> cargoStations = new();
         protected double payloadCargo;
 
-        public PayloadStations(FlightPlan OFP, ServiceModel model)
+        public PayloadStations(ServiceModel model)
         {
             SetDistribution(model);
         }
@@ -50,15 +50,6 @@ namespace WorkingTitle2GSX
             payloadCargo = OFP.CargoTotal / unitScalar;
         }
 
-        //public static PayloadStations CreateInstance(string aircraft, FlightPlan OFP, ServiceModel model)
-        //{
-        //    if (aircraft.Contains("HS"))
-        //        return new PayloadStationsHS(OFP, model);
-        //    else if (aircraft.Contains("WT") || aircraft.Contains("4S") || aircraft.Contains("KR"))
-        //        return new PayloadStationsWT(OFP, model);
-        //    else
-        //        return null;
-        //}
         public static void SelectDistribution(ServiceModel model, out string distPax, out string distCargo)
         {
             if (model.AcIndentified.Contains("HorizonSim_B787_9"))
@@ -66,31 +57,45 @@ namespace WorkingTitle2GSX
                 distPax = model.DistributionPaxHS;
                 distCargo = model.DistributionCargoHS;
             }
-            else if (model.AcIndentified.Contains("Asobo_B787_10") || model.AcIndentified.Contains("B787_9") || model.AcIndentified.Contains("Kuro_B787_8"))
+            else if (model.AcIndentified.Contains("Kuro_B787_8"))
+            {
+                distPax = model.DistributionPaxKU;
+                distCargo = model.DistributionCargoKU;
+            }
+            else if (model.AcIndentified.Contains("B787_9"))
             {
                 distPax = model.DistributionPaxWT;
                 distCargo = model.DistributionCargoWT;
             }
-            else
+            else //"Asobo_B787_10"
             {
                 distPax = model.DistributionPaxWT;
                 distCargo = model.DistributionCargoWT;
             }
         }
-        //public void Disconnect()
-        //{
-        //    FSUIPCConnection.PayloadServices.WriteChanges();
-        //}
+
         public void Refresh()
         {
             FSUIPCConnection.PayloadServices.RefreshData();
         }
+        public void SetPilots()
+        {
+            FSUIPCConnection.PayloadServices.PayloadStations[0].WeightLbs = paxWeight;
+            FSUIPCConnection.PayloadServices.PayloadStations[1].WeightLbs = paxWeight;
+        }
         public void SetPax(int num)
         {
             var ipcStations = FSUIPCConnection.PayloadServices.PayloadStations;
+            double weightPax;
+            double weightPilots;
             foreach (var station in paxStations)
             {
-                ipcStations[station.Key].WeightLbs = (double)num * paxWeight * station.Value;
+                weightPax = (double)num * paxWeight * station.Value;
+                weightPilots = 2 * (85 / Model.ConstKilo) * station.Value;
+                if (weightPax - weightPilots >= 0)
+                    ipcStations[station.Key].WeightLbs = weightPax - weightPilots;
+                else
+                    ipcStations[station.Key].WeightLbs = weightPax;
             }
             FSUIPCConnection.PayloadServices.WriteChanges();
         }
@@ -106,22 +111,62 @@ namespace WorkingTitle2GSX
 
             return (int)(Math.Round(result,0));
         }
+
         public void SetCargo(double percent)
         {
-            var ipcStations = FSUIPCConnection.PayloadServices.PayloadStations;
-            if (percent * payloadCargo * cargoStations[1].Value < 21100)
+            if (Model.AcIndentified.Contains("HorizonSim_B787_9"))
             {
-                ipcStations[cargoStations[1].Key].WeightLbs = percent * payloadCargo;
-                if (percent == 0)
-                    ipcStations[cargoStations[0].Key].WeightLbs = 0;
+                SetCargoHS(percent);
             }
-            else
+            else if (Model.AcIndentified.Contains("Kuro_B787_8"))
             {
-                foreach (var station in cargoStations)
-                    ipcStations[station.Key].WeightLbs = percent * payloadCargo * station.Value;
+                SetCargoKU(percent);
+            }
+            else if (Model.AcIndentified.Contains("B787_9"))
+            {
+                SetCargoWT(percent);
+            }
+            else //"Asobo_B787_10"
+            {
+                SetCargoWT(percent);
             }
             FSUIPCConnection.PayloadServices.WriteChanges();
         }
+
+        private void SetCargoHS(double percent)
+        {
+            var ipcStations = FSUIPCConnection.PayloadServices.PayloadStations;
+            if (percent * payloadCargo < Model.RearCargoMaxHS)
+                ipcStations[cargoStations[1].Key].WeightLbs = percent * payloadCargo;
+            else
+            {
+                ipcStations[cargoStations[1].Key].WeightLbs = Model.RearCargoMaxHS;
+                ipcStations[cargoStations[0].Key].WeightLbs = (percent * payloadCargo) - Model.RearCargoMaxHS;
+            }
+        }
+
+        private void SetCargoKU(double percent)
+        {
+            var ipcStations = FSUIPCConnection.PayloadServices.PayloadStations;
+            if (percent * payloadCargo * 0.5 < Model.RearCargoMaxKU)
+            {
+                ipcStations[cargoStations[0].Key].WeightLbs = percent * payloadCargo * 0.5;
+                ipcStations[cargoStations[1].Key].WeightLbs = percent * payloadCargo * 0.5;
+            }
+            else
+            {
+                ipcStations[cargoStations[1].Key].WeightLbs = Model.RearCargoMaxKU;
+                ipcStations[cargoStations[0].Key].WeightLbs = (percent * payloadCargo) - Model.RearCargoMaxKU;
+            }
+        }
+
+        private void SetCargoWT(double percent)
+        {
+            var ipcStations = FSUIPCConnection.PayloadServices.PayloadStations;
+            foreach (var station in cargoStations)
+                ipcStations[station.Key].WeightLbs = percent * payloadCargo * station.Value;
+        }
+
         public double GetCargo()
         {
             FSUIPCConnection.PayloadServices.RefreshData();

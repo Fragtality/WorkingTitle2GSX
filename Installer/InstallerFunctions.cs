@@ -35,6 +35,9 @@ namespace Installer
         public static bool AutoStartFsuipc()
         {
             bool result = false;
+            string programParam = "READY";
+            if (CheckFSUIPC("7.4.0"))
+                programParam = "CONNECTED";
 
             try
             {
@@ -49,7 +52,7 @@ namespace Installer
                     string fileContent = File.ReadAllText(regPath, Encoding.Default);
                     if (!fileContent.Contains("[Programs]"))
                     {
-                        fileContent += $"\r\n[Programs]\r\nRunIf1=READY,KILL,{Parameters.binPath}";
+                        fileContent += $"\r\n[Programs]\r\nRunIf1={programParam},KILL,{Parameters.binPath}";
                         File.WriteAllText(regPath, fileContent, Encoding.Default);
                         result = true;
                     }
@@ -58,7 +61,7 @@ namespace Installer
                         string pattern = @"^RunIf(\d+).*WorkingTitle2GSX\.exe";
                         if (Regex.IsMatch(fileContent, pattern, RegexOptions.Compiled | RegexOptions.Multiline))
                         {
-                            fileContent = Regex.Replace(fileContent, pattern, $"RunIf$1=READY,KILL,{Parameters.binPath}", RegexOptions.Compiled | RegexOptions.Multiline);
+                            fileContent = Regex.Replace(fileContent, pattern, $"RunIf$1={programParam},KILL,{Parameters.binPath}", RegexOptions.Compiled | RegexOptions.Multiline);
                             File.WriteAllText(regPath, fileContent, Encoding.Default);
                             result = true;
                         }
@@ -67,7 +70,7 @@ namespace Installer
                             int posLastRunBegin = fileContent.LastIndexOf("RunIf");
                             int posLastRunEnd = fileContent.IndexOf('\n', posLastRunBegin);
                             int lastIndex = Convert.ToInt32(fileContent.Substring(posLastRunBegin + 5, 1));
-                            fileContent = fileContent.Insert(posLastRunEnd + 1, $"RunIf{lastIndex + 1}=READY,KILL,{Parameters.binPath}\r\n");
+                            fileContent = fileContent.Insert(posLastRunEnd + 1, $"RunIf{lastIndex + 1}={programParam},KILL,{Parameters.binPath}\r\n");
                             File.WriteAllText(regPath, fileContent, Encoding.Default);
                             result = true;
                         }
@@ -111,7 +114,7 @@ namespace Installer
                             else if (innerNode.Name == "CommandLine")
                                 innerNode.InnerText = "";
                             else if (innerNode.Name == "ManualLoad")
-                                innerNode.InnerText = "";
+                                innerNode.InnerText = "False";
                         }
                     }
                 }
@@ -262,16 +265,23 @@ namespace Installer
         #endregion
 
         #region Check Requirements
-        public static bool CheckFSUIPC()
+        public static bool CheckFSUIPC(string version = null)
         {
             bool result = false;
+            string ipcVersion = Parameters.ipcVersion;
+            if (!string.IsNullOrEmpty(version))
+                ipcVersion = version;
+
             try
             {
                 string regVersion = (string)Registry.GetValue(Parameters.ipcRegPath, Parameters.ipcRegValue, null);
                 if (!string.IsNullOrWhiteSpace(regVersion))
                 {
                     regVersion = regVersion.Substring(1);
-                    result = CheckVersion(regVersion, Parameters.ipcVersion, true, false);
+                    int index = regVersion.IndexOf("(beta)");
+                    if (index > 0)
+                        regVersion = regVersion.Substring(0, index).TrimEnd();
+                    result = CheckVersion(regVersion, ipcVersion, true, false);
                 }
             }
             catch (Exception e)
@@ -292,6 +302,12 @@ namespace Installer
             int vInst;
             int vReq;
             bool prevWasEqual = false;
+
+            for (int i = 0; i < strInst.Length; i++)
+            {
+                if (Regex.IsMatch(strInst[i], @"(\d+)\D"))
+                    strInst[i] = strInst[i].Substring(0, strInst[i].Length - 1);
+            }
 
             //Major
             if (int.TryParse(strInst[0], out vInst) && int.TryParse(strReq[0], out vReq))

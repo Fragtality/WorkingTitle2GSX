@@ -16,10 +16,10 @@ namespace Installer
 
         public static readonly int netMajor = 7;
         public static readonly int netMinor = 0;
-        public static readonly int netPatch = 13;
+        public static readonly int netPatch = 14;
         public static readonly string netVersion = $"{netMajor}.{netMinor}.{netPatch}";
-        public static readonly string netUrl = "https://download.visualstudio.microsoft.com/download/pr/515cc796-e9f2-4b5c-be7f-b42f115a65a7/b0b146fcbf1d1c135807ff24b3d88093/windowsdesktop-runtime-7.0.13-win-x64.exe";
-        public static readonly string netUrlFile = "windowsdesktop-runtime-7.0.13-win-x64.exe";
+        public static readonly string netUrl = "https://download.visualstudio.microsoft.com/download/pr/8f5b0079-2bb4-49cd-874e-0f58703eff6e/7010b5f213a2c436a307eb385dbb16ff/windowsdesktop-runtime-7.0.14-win-x64.exe";
+        public static readonly string netUrlFile = "windowsdesktop-runtime-7.0.14-win-x64.exe";
 
         public static readonly string ipcRegPath = @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\FSUIPC7";
         public static readonly string ipcRegInstallDirValue = "InstallDir";

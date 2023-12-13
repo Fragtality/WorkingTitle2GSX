@@ -14,3 +14,4 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("Usage", "CA2211:Nicht konstante Felder dürfen nicht sichtbar sein", Justification = "<Ausstehend>", Scope = "member", Target = "~F:WorkingTitle2GSX.App.ConfigFile")]
 [assembly: SuppressMessage("Usage", "CA2211:Nicht konstante Felder dürfen nicht sichtbar sein", Justification = "<Ausstehend>", Scope = "member", Target = "~F:WorkingTitle2GSX.App.AppDir")]
 [assembly: SuppressMessage("Interoperability", "CA1416:Plattformkompatibilität überprüfen", Justification = "<Ausstehend>")]
+[assembly: SuppressMessage("Performance", "CA1822:Member als statisch markieren", Justification = "<Ausstehend>", Scope = "member", Target = "~M:WorkingTitle2GSX.PayloadStations.Refresh")]
