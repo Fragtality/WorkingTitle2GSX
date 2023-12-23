@@ -6,6 +6,7 @@
 # CUSTOM
 Releases/
 *CopyToMSFS.ps1
+Build.ps1
 desktop.ini
 build.lck
 
