@@ -14,7 +14,7 @@
     <PackageIcon>logo.png</PackageIcon>
     <RepositoryUrl>https://github.com/Fragtality/WorkingTitle2GSX</RepositoryUrl>
     <PackageProjectUrl>https://github.com/Fragtality/WorkingTitle2GSX</PackageProjectUrl>
-    <Version>0.4.0</Version>
+    <Version>0.4.1</Version>
     <StartupObject>WorkingTitle2GSX.App</StartupObject>
   </PropertyGroup>
 
