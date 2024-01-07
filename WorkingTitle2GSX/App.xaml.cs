@@ -1,6 +1,7 @@
 ﻿using H.NotifyIcon;
 using Serilog;
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
@@ -25,6 +26,13 @@ namespace WorkingTitle2GSX
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+
+            if (Process.GetProcessesByName("WorkingTitle2GSX").Length > 1)
+            {
+                MessageBox.Show("WorkingTitle2GSX is already running!", "Critical Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Application.Current.Shutdown();
+                return;
+            }
 
             Directory.SetCurrentDirectory(AppDir);
 

@@ -24,7 +24,7 @@ namespace WorkingTitle2GSX
             string assemblyVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
             Logger.Log(LogLevel.Verbose, "MainWindow:MainWindow", $"assemblyVersion {assemblyVersion}");
             assemblyVersion = assemblyVersion[0..assemblyVersion.LastIndexOf('.')];
-            Title += "  (" + assemblyVersion + ")";
+            Title += " (" + assemblyVersion + ")";
 
             timer = new DispatcherTimer
             {
@@ -42,20 +42,6 @@ namespace WorkingTitle2GSX
             txtGallonsPerSecond.Text = Convert.ToString(serviceModel.GallonsPerSecond, CultureInfo.CurrentUICulture);
             chkResetFuel.IsChecked = serviceModel.ResetFuel;
             txtStartFuelWingPercent.Text = Convert.ToString(serviceModel.WingTankStartValue, CultureInfo.CurrentUICulture);
-
-            //string[] parts = serviceModel.DistributionPax.Split(';');
-            //double bizPax = Convert.ToDouble(parts[0], new RealInvariantFormat(parts[0]));
-            //double premPax = Convert.ToDouble(parts[1], new RealInvariantFormat(parts[1]));
-            //double ecoPax = Convert.ToDouble(parts[2], new RealInvariantFormat(parts[2]));
-            //txtPaxBusiness.Text = Convert.ToString(bizPax, CultureInfo.CurrentUICulture);
-            //txtPaxPremium.Text = Convert.ToString(premPax, CultureInfo.CurrentUICulture);
-            //txtPaxEconomy.Text = Convert.ToString(ecoPax, CultureInfo.CurrentUICulture);
-
-            //parts = serviceModel.DistributionCargo.Split(';');
-            //double cargoFwd = Convert.ToDouble(parts[0], new RealInvariantFormat(parts[0]));
-            //double cargoAft = Convert.ToDouble(parts[1], new RealInvariantFormat(parts[1]));
-            //txtCargoForward.Text = Convert.ToString(cargoFwd, CultureInfo.CurrentUICulture);
-            //txtCargoAft.Text = Convert.ToString(cargoAft, CultureInfo.CurrentUICulture);
         }
 
         protected void UpdateLogArea()
