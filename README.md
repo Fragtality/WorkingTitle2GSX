@@ -11,7 +11,7 @@ Download under [Releases](https://github.com/Fragtality/WorkingTitle2GSX/release
 ## Requirements
 
 - Any WT based 787 (Stock, Kuro/Horizon, 4Simmers)
-- [FSUIPC7](http://fsuipc.com/) latest installed (a registered Copy is not required, I think)
+- [FSUIPC7](http://fsuipc.com/) latest installed (a registered Copy is not required, I think)<br/>The WASM Module of FSUIPC has to be also installed & enabled!
 - GSX Pro
 - SimBrief Account
 - .NET 7 Runtime (will be installed through the Installer)
