@@ -25,7 +25,7 @@ Download under [Releases](https://github.com/Fragtality/WorkingTitle2GSX/release
 - Run as Admin is NOT required
 - Set your SimBrief **PilotID** in the GUI (the Number, not the Username)
 - Ensure that the Option *'Show MSFS Fuel and Cargo during refueling'* is **unchecked** in the GSX Airplane Profile
-- Ensure that the Option *'Always refuel progressively'* is **unchecked** in the GSX Settings
+- If the Fuel-Truck does not leave when planned Fuel is reached: **uncheck** *'Always refuel progressively'* in the GSX Settings
 
 <br/>
 
