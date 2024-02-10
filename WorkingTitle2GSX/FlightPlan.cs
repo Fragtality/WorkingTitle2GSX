@@ -73,33 +73,38 @@ namespace WorkingTitle2GSX
         public bool Load()
         {
             XmlNode sbOFP = LoadOFP();
-            string lastID = FlightPlanID;
-            Flight = sbOFP["general"]["icao_airline"].InnerText + sbOFP["general"]["flight_number"].InnerText;
-            FlightPlanID = sbOFP["params"]["request_id"].InnerText;
-            Origin = sbOFP["origin"]["icao_code"].InnerText;
-            Destination = sbOFP["destination"]["icao_code"].InnerText;
-            Units = sbOFP["params"]["units"].InnerText;
-            Fuel = Convert.ToDouble(sbOFP["fuel"]["plan_ramp"].InnerText, new RealInvariantFormat(sbOFP["fuel"]["plan_ramp"].InnerText)); ;
-            if (Model.UseActualPaxValue)
+            if (sbOFP != null)
             {
-                Passenger = Convert.ToInt32(sbOFP["weights"]["pax_count_actual"].InnerText);
-                Bags = Convert.ToInt32(sbOFP["weights"]["bag_count_actual"].InnerText);
+                string lastID = FlightPlanID;
+                Flight = sbOFP["general"]["icao_airline"].InnerText + sbOFP["general"]["flight_number"].InnerText;
+                FlightPlanID = sbOFP["params"]["request_id"].InnerText;
+                Origin = sbOFP["origin"]["icao_code"].InnerText;
+                Destination = sbOFP["destination"]["icao_code"].InnerText;
+                Units = sbOFP["params"]["units"].InnerText;
+                Fuel = Convert.ToDouble(sbOFP["fuel"]["plan_ramp"].InnerText, new RealInvariantFormat(sbOFP["fuel"]["plan_ramp"].InnerText)); ;
+                if (Model.UseActualPaxValue)
+                {
+                    Passenger = Convert.ToInt32(sbOFP["weights"]["pax_count_actual"].InnerText);
+                    Bags = Convert.ToInt32(sbOFP["weights"]["bag_count_actual"].InnerText);
+                }
+                else
+                {
+                    Passenger = Convert.ToInt32(sbOFP["weights"]["pax_count"].InnerText);
+                    Bags = Convert.ToInt32(sbOFP["weights"]["bag_count"].InnerText);
+                }
+                CargoTotal = Convert.ToInt32(sbOFP["weights"]["cargo"].InnerText);
+                WeightPax = Convert.ToDouble(sbOFP["weights"]["pax_weight"].InnerText, new RealInvariantFormat(sbOFP["weights"]["pax_weight"].InnerText));
+                WeightBag = Convert.ToDouble(sbOFP["weights"]["bag_weight"].InnerText, new RealInvariantFormat(sbOFP["weights"]["bag_weight"].InnerText));
+
+                if (lastID != FlightPlanID && Model.AcIndentified == sbOFP["aircraft"]["name"].InnerText)
+                {
+                    Logger.Log(LogLevel.Information, "FlightPlan:Load", $"New OFP for Flight {Flight} loaded. ({Origin} -> {Destination})");
+                }
+
+                return lastID != FlightPlanID;
             }
             else
-            {
-                Passenger = Convert.ToInt32(sbOFP["weights"]["pax_count"].InnerText);
-                Bags = Convert.ToInt32(sbOFP["weights"]["bag_count"].InnerText);
-            }
-            CargoTotal = Convert.ToInt32(sbOFP["weights"]["cargo"].InnerText);
-            WeightPax = Convert.ToDouble(sbOFP["weights"]["pax_weight"].InnerText, new RealInvariantFormat(sbOFP["weights"]["pax_weight"].InnerText));
-            WeightBag = Convert.ToDouble(sbOFP["weights"]["bag_weight"].InnerText, new RealInvariantFormat(sbOFP["weights"]["bag_weight"].InnerText));
-
-            if (lastID != FlightPlanID && Model.AcIndentified == sbOFP["aircraft"]["name"].InnerText)
-            {
-                Logger.Log(LogLevel.Information, "FlightPlan:Load", $"New OFP for Flight {Flight} loaded. ({Origin} -> {Destination})");
-            }
-
-            return lastID != FlightPlanID;
+                return false;
         }
 
         public void SetPassengersGSX()

@@ -50,6 +50,13 @@ namespace WorkingTitle2GSX
             catch (Exception ex)
             {
                 Logger.Log(LogLevel.Critical, "ServiceController:Run", $"Critical Exception occured: {ex.Source} - {ex.Message}");
+                if (!IPCManager.IsSimRunning())
+                {
+                    Model.CancellationRequested = true;
+                    Model.ServiceExited = true;
+                    Logger.Log(LogLevel.Critical, "ServiceController:Run", $"Sim not running - exiting Program");
+                    return;
+                }
             }
         }
 
@@ -128,7 +135,12 @@ namespace WorkingTitle2GSX
                     //Pre-Flight - First-Flight
                     if (state == 0 && FSUIPCConnection.ReadLVar("XMLVAR_Battery_Switch_State") == 1)
                     {
-                        flightPlan.Load();
+                        if (!flightPlan.Load())
+                        {
+                            Logger.Log(LogLevel.Error, "ServiceController:ServiceLoop", "Could not load Flightplan");
+                            sleep = 5000;
+                            continue;
+                        }
                         flightPlan.SetPassengersGSX();
                         aircraft.SetPayload(flightPlan);
                         state = 1;
@@ -324,7 +336,7 @@ namespace WorkingTitle2GSX
             Logger.Log(LogLevel.Information, "ServiceController:ServiceLoop", "ServiceLoop ended");
         }
 
-        protected void ResetGsxVars()
+        protected static void ResetGsxVars()
         {
             FSUIPCConnection.WriteLVar("FSDT_GSX_NUMPASSENGERS_BOARDING_TOTAL", 0);
             FSUIPCConnection.WriteLVar("FSDT_GSX_NUMPASSENGERS_DEBOARDING_TOTAL", 0);
