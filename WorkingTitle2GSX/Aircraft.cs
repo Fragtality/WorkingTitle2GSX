@@ -327,7 +327,7 @@ namespace WorkingTitle2GSX
 
         public void SetEmpty()
         {
-            Logger.Log(LogLevel.Information, "Aircraft:SetEmpty", $"Resetting Paylod & Fuel (Empty Plane)");
+            Logger.Log(LogLevel.Information, "Aircraft:SetEmpty", $"Resetting Payload & Fuel (Empty Plane)");
             Stations.Refresh();
             fuelLeftOffset.Reconnect();
             fuelRightOffset.Reconnect();

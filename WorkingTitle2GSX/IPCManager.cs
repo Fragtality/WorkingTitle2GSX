@@ -76,13 +76,13 @@ namespace WorkingTitle2GSX
                 Logger.Log(LogLevel.Critical, "IPCManager:WaitForConnection", $"Exception while opening FSUIPC! (Exception: {ex.GetType()})");
             }
 
-            if (!FSUIPCConnection.IsOpen)
+            if (!FSUIPCConnection.IsOpen && IsSimRunning())
             {
                 Logger.Log(LogLevel.Information, "IPCManager:WaitForConnection", $"FSUIPC Connection not established - waiting {waitDuration / 2 / 1000}s");
                 Thread.Sleep(waitDuration / 2);
             }
 
-            return FSUIPCConnection.IsOpen && offInMenu.IsConnected;
+            return FSUIPCConnection.IsOpen && offInMenu.IsConnected && IsSimRunning();
         }
 
         public string CheckAircraft(ServiceModel model)
@@ -159,7 +159,7 @@ namespace WorkingTitle2GSX
                 isReady = IsCamReady();
             }
 
-            if (!isReady)
+            if (!isReady || !IsSimRunning())
             {
                 Logger.Log(LogLevel.Error, "IPCManager:WaitForSessionReady", $"SimConnect or Simulator not available - aborting");
                 return false;
@@ -179,9 +179,8 @@ namespace WorkingTitle2GSX
         {
             FSUIPCConnection.Process(ServiceModel.IpcGroupName);
             short value = offCamReady.Value;
-            byte menu = offInMenu.Value;
 
-            return value >= 2 && value <= 5 && menu == 0;
+            return value < 11;
         }
 
         public void CloseSafe()

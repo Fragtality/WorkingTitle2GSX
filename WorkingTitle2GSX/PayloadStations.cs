@@ -52,17 +52,17 @@ namespace WorkingTitle2GSX
 
         public static void SelectDistribution(ServiceModel model, out string distPax, out string distCargo)
         {
-            if (model.AcIndentified.Contains("HorizonSim_B787_9"))
+            if (model.AcIndentified.Contains("HorizonSim_B787_9", StringComparison.InvariantCultureIgnoreCase))
             {
                 distPax = model.DistributionPaxHS;
                 distCargo = model.DistributionCargoHS;
             }
-            else if (model.AcIndentified.Contains("Kuro_B787_8"))
+            else if (model.AcIndentified.Contains("Kuro_B787_8", StringComparison.InvariantCultureIgnoreCase))
             {
                 distPax = model.DistributionPaxKU;
                 distCargo = model.DistributionCargoKU;
             }
-            else if (model.AcIndentified.Contains("B787_9"))
+            else if (model.AcIndentified.Contains("B787_9", StringComparison.InvariantCultureIgnoreCase))
             {
                 distPax = model.DistributionPaxWT;
                 distCargo = model.DistributionCargoWT;
@@ -93,9 +93,15 @@ namespace WorkingTitle2GSX
                 weightPax = (double)num * paxWeight * station.Value;
                 weightPilots = 2 * (85 / Model.ConstKilo) * station.Value;
                 if (weightPax - weightPilots >= 0)
+                {
+                    Logger.Log(LogLevel.Debug, "PayloadStations:SetPax", $"Setting {weightPax - weightPilots}lbs ({(weightPax - weightPilots) * Model.ConstKilo}kg) to Station '{station.Key}' ({ipcStations[station.Key].Name})");
                     ipcStations[station.Key].WeightLbs = weightPax - weightPilots;
+                }
                 else
+                {
+                    Logger.Log(LogLevel.Debug, "PayloadStations:SetPax", $"Setting {weightPax}lbs ({weightPax * Model.ConstKilo}kg) to Station '{station.Key}' ({ipcStations[station.Key].Name})");
                     ipcStations[station.Key].WeightLbs = weightPax;
+                }
             }
             FSUIPCConnection.PayloadServices.WriteChanges();
         }
@@ -114,15 +120,15 @@ namespace WorkingTitle2GSX
 
         public void SetCargo(double percent)
         {
-            if (Model.AcIndentified.Contains("HorizonSim_B787_9"))
+            if (Model.AcIndentified.Contains("HorizonSim_B787_9", StringComparison.InvariantCultureIgnoreCase))
             {
                 SetCargoHS(percent);
             }
-            else if (Model.AcIndentified.Contains("Kuro_B787_8"))
+            else if (Model.AcIndentified.Contains("Kuro_B787_8", StringComparison.InvariantCultureIgnoreCase))
             {
                 SetCargoKU(percent);
             }
-            else if (Model.AcIndentified.Contains("B787_9"))
+            else if (Model.AcIndentified.Contains("B787_9", StringComparison.InvariantCultureIgnoreCase))
             {
                 SetCargoWT(percent);
             }
@@ -137,10 +143,15 @@ namespace WorkingTitle2GSX
         {
             var ipcStations = FSUIPCConnection.PayloadServices.PayloadStations;
             if (percent * payloadCargo < Model.RearCargoMaxHS)
+            {
+                Logger.Log(LogLevel.Debug, "PayloadStations:SetCargoHS", $"Setting {percent * payloadCargo}lbs ({(percent * payloadCargo) * Model.ConstKilo}kg) to Station '{cargoStations[1].Key}' ({ipcStations[cargoStations[1].Key].Name})");
                 ipcStations[cargoStations[1].Key].WeightLbs = percent * payloadCargo;
+            }
             else
             {
+                Logger.Log(LogLevel.Debug, "PayloadStations:SetCargoHS", $"Setting {Model.RearCargoMaxHS}lbs ({Model.RearCargoMaxHS * Model.ConstKilo}kg) to Station '{cargoStations[1].Key}' ({ipcStations[cargoStations[1].Key].Name})");
                 ipcStations[cargoStations[1].Key].WeightLbs = Model.RearCargoMaxHS;
+                Logger.Log(LogLevel.Debug, "PayloadStations:SetCargoHS", $"Setting {(percent * payloadCargo) - Model.RearCargoMaxHS}lbs ({((percent * payloadCargo) - Model.RearCargoMaxHS) * Model.ConstKilo}kg) to Station '{cargoStations[0].Key}' ({ipcStations[cargoStations[0].Key].Name})");
                 ipcStations[cargoStations[0].Key].WeightLbs = (percent * payloadCargo) - Model.RearCargoMaxHS;
             }
         }

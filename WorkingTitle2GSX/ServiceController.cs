@@ -33,6 +33,7 @@ namespace WorkingTitle2GSX
                         {
                             Model.CancellationRequested = true;
                             Model.ServiceExited = true;
+                            App.Current.Shutdown();
                             Logger.Log(LogLevel.Critical, "ServiceController:Run", $"Session aborted, Retry not possible - exiting Program");
                             return;
                         }
@@ -110,7 +111,8 @@ namespace WorkingTitle2GSX
 
             Offset<short> offsetGround = new(ServiceModel.IpcGroupName, 0x0366);
             int state = 0;
-            int sleep = 3000;
+            int sleep = 2000;
+            int sleepCounter = 0;
             bool refueling = false;
             bool refuelPaused = false;
             bool refuelFinished = false;
@@ -124,7 +126,16 @@ namespace WorkingTitle2GSX
             {
                 try
                 {
-                    Thread.Sleep(sleep);
+                    if (sleepCounter < sleep)
+                    {
+                        Thread.Sleep(1000);
+                        sleepCounter += 1000;
+                        continue;
+                    }
+                    else
+                        sleepCounter = 0;
+
+
                     if (firstStart && offsetGround.Value == 1 && !Model.TestArrival && Model.ResetFuel)
                     {
                         aircraft.SetEmpty();
@@ -141,6 +152,7 @@ namespace WorkingTitle2GSX
                             sleep = 5000;
                             continue;
                         }
+                        FSUIPCConnection.WriteLVar("FSDT_GSX_SET_PROGRESS_REFUEL", -1);
                         flightPlan.SetPassengersGSX();
                         aircraft.SetPayload(flightPlan);
                         state = 1;
@@ -158,7 +170,7 @@ namespace WorkingTitle2GSX
                         continue;
                     }
                     //Special Case: loaded in Flight
-                    if (state == 0 && offsetGround.Value == 0)
+                    if (state == 0 && offsetGround.Value == 0 && IPCManager.IsCamReady() && IPCManager.IsSimRunning())
                     {
                         flightPlan.Load();
                         flightPlan.SetPassengersGSX();
@@ -243,7 +255,7 @@ namespace WorkingTitle2GSX
                     if (state <= 3)
                     {
                         //Taxi Out -> Flight
-                        if (state <= 2 && offsetGround.Value == 0)
+                        if (state <= 2 && offsetGround.Value == 0 && IPCManager.IsCamReady() && IPCManager.IsSimRunning())
                         {
                             state = 3;
                             sleep = 180000;

@@ -96,7 +96,7 @@ namespace WorkingTitle2GSX
                 WeightPax = Convert.ToDouble(sbOFP["weights"]["pax_weight"].InnerText, new RealInvariantFormat(sbOFP["weights"]["pax_weight"].InnerText));
                 WeightBag = Convert.ToDouble(sbOFP["weights"]["bag_weight"].InnerText, new RealInvariantFormat(sbOFP["weights"]["bag_weight"].InnerText));
 
-                if (lastID != FlightPlanID && Model.AcIndentified == sbOFP["aircraft"]["name"].InnerText)
+                if (lastID != FlightPlanID)
                 {
                     Logger.Log(LogLevel.Information, "FlightPlan:Load", $"New OFP for Flight {Flight} loaded. ({Origin} -> {Destination})");
                 }
